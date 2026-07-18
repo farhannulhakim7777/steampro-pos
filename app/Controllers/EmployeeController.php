@@ -8,11 +8,22 @@ use App\Core\Csrf;
 
 final class EmployeeController extends Controller
 {
+
     public function index(): void
     {
         Auth::requireRole(['owner']);
-        $employees = $this->db()->query("SELECT e.*, COUNT(q.id) completed_jobs FROM employees e LEFT JOIN queues q ON q.employee_id=e.id AND q.status IN ('Finished','Delivered') GROUP BY e.id ORDER BY e.name")->fetchAll();
-        view('employees/index', compact('employees') + ['title' => 'Employees']);
+        $employees = $this->db()->query("SELECT e.*, COUNT(q.id) completed_jobs FROM employees e LEFT JOIN queues q ON q.employee_id=e.id AND q.status = 'Finished' GROUP BY e.id ORDER BY e.name")->fetchAll();
+
+        // Edit mode: load employee data if id provided
+        $editEmployee = null;
+        $editId = (int) query('id', 0);
+        if ($editId > 0) {
+            $stmt = $this->db()->prepare('SELECT * FROM employees WHERE id = ?');
+            $stmt->execute([$editId]);
+            $editEmployee = $stmt->fetch();
+        }
+
+        view('employees/index', compact('employees', 'editEmployee') + ['title' => 'Employees']);
     }
 
     public function save(): void

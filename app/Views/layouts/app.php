@@ -39,7 +39,7 @@ $authPage = $authPage ?? false;
             } else {
                 $links = [
                     '/' => 'Dashboard', '/cashier' => 'Kasir', '/queue' => 'Papan Antrian', '/customers' => 'Pelanggan',
-                    '/services' => 'Layanan', '/products' => 'Produk', '/employees' => 'Karyawan',
+                    '/services' => 'Layanan', '/employees' => 'Karyawan',
                     '/expenses' => 'Pengeluaran', '/reports' => 'Laporan', '/settings' => 'Pengaturan',
                 ];
             }

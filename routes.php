@@ -6,7 +6,6 @@ use App\Controllers\CustomerController;
 use App\Controllers\DashboardController;
 use App\Controllers\EmployeeController;
 use App\Controllers\ExpenseController;
-use App\Controllers\ProductController;
 use App\Controllers\QueueController;
 use App\Controllers\ReportController;
 use App\Controllers\ServiceController;
@@ -39,10 +38,6 @@ $router->post('/services/delete', [ServiceController::class, 'delete']);
 $router->post('/services/category/save', [ServiceController::class, 'saveCategory']);
 $router->post('/services/category/delete', [ServiceController::class, 'deleteCategory']);
 
-$router->get('/products', [ProductController::class, 'index']);
-$router->post('/products/save', [ProductController::class, 'save']);
-$router->post('/products/stock', [ProductController::class, 'stock']);
-$router->post('/products/delete', [ProductController::class, 'delete']);
 
 $router->get('/employees', [EmployeeController::class, 'index']);
 $router->post('/employees/save', [EmployeeController::class, 'save']);

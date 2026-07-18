@@ -53,11 +53,17 @@
                         <strong><?= e($item['transaction_no']) ?></strong>
                         <small><?= e($item['customer_name']) ?></small>
                     </div>
-                    <div>
+                    <div style="display:flex;align-items:center;gap:8px;">
                         <span class="badge danger">Sisa: <?= money($item['remaining_amount']) ?></span>
-                        <button type="button" onclick="markAsPaid(<?= e($item['id']) ?>, <?= e($item['remaining_amount']) ?>)" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--success),#059669);color:#fff;cursor:pointer;font-weight:600;transition:all .2s;">
-                            Lunas
-                        </button>
+                        <form method="post" action="<?= e(url('/dashboard/mark-paid')) ?>" style="margin:0;" onsubmit="return confirm('Tandai transaksi ini sebagai lunas?')">
+                            <?= csrf_field() ?>
+                            <input type="hidden" name="id" value="<?= e($item['id']) ?>">
+                            <input type="hidden" name="amount" value="<?= e($item['remaining_amount']) ?>">
+                            <input type="hidden" name="payment_method" value="Cash">
+                            <button type="submit" style="padding:8px 16px;border-radius:8px;border:none;background:linear-gradient(135deg,var(--success),#059669);color:#fff;cursor:pointer;font-weight:600;transition:all .2s;">
+                                Lunas
+                            </button>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -80,23 +86,5 @@
         <?php foreach ($topCustomers as $item): ?><div class="rank"><span><?= e($item['name']) ?><small><?= e($item['visits']) ?> kunjungan</small></span><strong><?= money($item['spent']) ?></strong></div><?php endforeach; ?>
     </div>
 </section>
-<script>
-function markAsPaid(id, amount) {
-    showConfirm('Tandai transaksi ini sebagai lunas?').then(confirmed => {
-        if (confirmed) {
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.action = '<?= e(url('/dashboard/mark-paid')) ?>';
-            form.innerHTML = `
-                <input type="hidden" name="csrf_token" value="<?= e(\App\Core\Csrf::token()) ?>">
-                <input type="hidden" name="id" value="${id}">
-                <input type="hidden" name="amount" value="${amount}">
-                <input type="hidden" name="payment_method" value="Cash">
-            `;
-            document.body.appendChild(form);
-            form.submit();
-        }
-    });
-}
-</script>
+
 

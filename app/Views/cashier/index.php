@@ -36,7 +36,7 @@
     </section>
     <aside class="panel checkout">
         <h2>Pembayaran</h2>
-        <label>Metode Pembayaran<select name="payment_method"><option>Tunai</option><option>QRIS</option><option>Transfer</option><option>E-Wallet</option></select></label>
+        <label>Metode Pembayaran<select name="payment_method"><option value="Cash">Tunai</option><option>QRIS</option><option>Transfer</option><option>E-Wallet</option></select></label>
         <label>Catatan<textarea name="notes"></textarea></label>
         <div class="total-line"><span>Subtotal</span><strong data-subtotal>Rp 0</strong></div>
         <div class="total-line grand"><span>Total</span><strong data-total>Rp 0</strong></div>

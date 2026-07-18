@@ -69,32 +69,8 @@ CREATE TABLE services (
     KEY idx_services_status (status)
 ) ENGINE=InnoDB;
 
-CREATE TABLE products (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(140) NOT NULL,
-    category VARCHAR(80) NULL,
-    price DECIMAL(12,2) NOT NULL DEFAULT 0,
-    stock INT NOT NULL DEFAULT 0,
-    low_stock_threshold INT NOT NULL DEFAULT 5,
-    status ENUM('active','inactive') NOT NULL DEFAULT 'active',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    KEY idx_products_stock (stock, low_stock_threshold),
-    KEY idx_products_status (status)
-) ENGINE=InnoDB;
 
-CREATE TABLE stock_movements (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    product_id INT NOT NULL,
-    type ENUM('in','out') NOT NULL,
-    quantity INT NOT NULL,
-    note VARCHAR(255) NULL,
-    user_id INT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_stock_product FOREIGN KEY (product_id) REFERENCES products(id),
-    CONSTRAINT fk_stock_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    KEY idx_stock_created (created_at)
-) ENGINE=InnoDB;
+
 
 CREATE TABLE employees (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -161,7 +137,7 @@ CREATE TABLE queues (
     transaction_id INT NOT NULL,
     customer_id INT NOT NULL,
     employee_id INT NULL,
-    status ENUM('Waiting','In Queue','Washing','Detailing','Drying','Finished','Delivered') NOT NULL DEFAULT 'Waiting',
+    status ENUM('Waiting','Finished') NOT NULL DEFAULT 'Waiting',
     priority TINYINT(1) NOT NULL DEFAULT 0,
     created_at DATETIME NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -259,12 +235,6 @@ INSERT INTO services (category_id, name, price, estimated_duration, status) VALU
 (8, 'Ceramic Coating Lite', 180000, 180, 'active'),
 (9, 'Seat Vacuum', 20000, 15, 'active');
 
-INSERT INTO products (name, category, price, stock, low_stock_threshold, status) VALUES
-('Motor Shampoo 250ml', 'Shampoo', 25000, 24, 5, 'active'),
-('Helmet Cleaner Spray', 'Helmet Cleaner', 30000, 12, 4, 'active'),
-('Microfiber Cloth', 'Microfiber Cloth', 18000, 30, 6, 'active'),
-('Spray Wax', 'Wax', 45000, 10, 3, 'active'),
-('Motor Perfume', 'Perfume', 22000, 18, 5, 'active');
 
 INSERT INTO employees (name, phone, position, salary, join_date, status) VALUES
 ('Raka', '0812000001', 'Washer', 2500000, CURDATE(), 'active'),

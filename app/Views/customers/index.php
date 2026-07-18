@@ -22,7 +22,7 @@ function confirmDeleteCustomer(id) {
             form.method = 'post';
             form.action = '<?= e(url('/customers/delete')) ?>';
             form.innerHTML = `
-                <input type="hidden" name="csrf_token" value="<?= e(\App\Core\Csrf::token()) ?>">
+                <input type="hidden" name="_csrf" value="<?= e(\App\Core\Csrf::token()) ?>">
                 <input type="hidden" name="id" value="${id}">
             `;
             document.body.appendChild(form);

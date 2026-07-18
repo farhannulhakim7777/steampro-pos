@@ -6,7 +6,6 @@ document.querySelectorAll('[data-pos-form]').forEach(form => {
   const recalc = () => {
     let subtotal = 0;
     form.querySelectorAll('input[name="services[]"]:checked').forEach(input => subtotal += Number(input.dataset.price || 0));
-    form.querySelectorAll('.product-list input[type="number"]').forEach(input => subtotal += Number(input.dataset.price || 0) * Number(input.value || 0));
     const discount = Math.min(Number(form.querySelector('[data-discount]')?.value || 0), subtotal);
     form.querySelector('[data-subtotal]').textContent = rupiah(subtotal);
     form.querySelector('[data-total]').textContent = rupiah(subtotal - discount);

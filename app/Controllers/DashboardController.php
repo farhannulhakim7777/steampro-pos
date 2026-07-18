@@ -14,8 +14,8 @@ final class DashboardController extends Controller
         $stats = [
             'today_revenue' => $db->query("SELECT COALESCE(SUM(paid_amount),0) FROM transactions WHERE DATE(transaction_date)=CURDATE()")->fetchColumn(),
             'today_transactions' => $db->query("SELECT COUNT(*) FROM transactions WHERE DATE(transaction_date)=CURDATE()")->fetchColumn(),
-            'active_queue' => $db->query("SELECT COUNT(*) FROM queues WHERE status NOT IN ('Finished','Delivered')")->fetchColumn(),
-            'completed_services' => $db->query("SELECT COUNT(*) FROM queues WHERE status IN ('Finished','Delivered') AND DATE(updated_at)=CURDATE()")->fetchColumn(),
+            'active_queue' => $db->query("SELECT COUNT(*) FROM queues WHERE status = 'Waiting'")->fetchColumn(),
+            'completed_services' => $db->query("SELECT COUNT(*) FROM queues WHERE status = 'Finished' AND DATE(updated_at)=CURDATE()")->fetchColumn(),
             'monthly_revenue' => $db->query("SELECT COALESCE(SUM(paid_amount),0) FROM transactions WHERE DATE_FORMAT(transaction_date,'%Y-%m')=DATE_FORMAT(CURDATE(),'%Y-%m')")->fetchColumn(),
             'monthly_expenses' => $db->query("SELECT COALESCE(SUM(amount),0) FROM expenses WHERE DATE_FORMAT(expense_date,'%Y-%m')=DATE_FORMAT(CURDATE(),'%Y-%m')")->fetchColumn(),
         ];
@@ -25,7 +25,7 @@ final class DashboardController extends Controller
         $topServices = $db->query("SELECT s.name, COUNT(*) total FROM transaction_details td JOIN services s ON s.id=td.item_id WHERE td.item_type='service' GROUP BY s.id ORDER BY total DESC LIMIT 5")->fetchAll();
         $topCustomers = $db->query("SELECT c.name, COUNT(t.id) visits, COALESCE(SUM(t.total_amount),0) spent FROM customers c JOIN transactions t ON t.customer_id=c.id GROUP BY c.id ORDER BY spent DESC LIMIT 5")->fetchAll();
         $pending = $db->query("SELECT t.id, t.transaction_no, t.total_amount, t.paid_amount, t.remaining_amount, t.payment_status, c.name AS customer_name FROM transactions t LEFT JOIN customers c ON c.id=t.customer_id WHERE t.payment_status IN ('partial','unpaid') ORDER BY t.id DESC LIMIT 10")->fetchAll();
-        $lowStock = $db->query("SELECT name, stock, low_stock_threshold FROM products WHERE stock <= low_stock_threshold AND status='active' ORDER BY stock ASC LIMIT 6")->fetchAll();
+
         
         $endDate = date('Y-m-d');
         $startDate = date('Y-m-d', strtotime($endDate . ' -6 days'));
@@ -33,7 +33,7 @@ final class DashboardController extends Controller
         $stmt->execute([$startDate, $endDate]);
         $dailyRevenue = $stmt->fetchAll();
 
-        view('dashboard/index', compact('stats', 'recent', 'topServices', 'topCustomers', 'pending', 'lowStock', 'dailyRevenue') + ['title' => 'Dashboard']);
+        view('dashboard/index', compact('stats', 'recent', 'topServices', 'topCustomers', 'pending', 'dailyRevenue') + ['title' => 'Dashboard']);
     }
 
     public function markAsPaid(): void
