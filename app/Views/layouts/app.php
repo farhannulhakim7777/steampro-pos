@@ -14,6 +14,7 @@ $authPage = $authPage ?? false;
     <meta name="app-base" content="<?= e(app_base_path()) ?>">
     <title><?= e($title ?? $config['app']['name']) ?> - <?= e($config['app']['name']) ?></title>
     <link rel="stylesheet" href="<?= e(url('/assets/css/app.css')) ?>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
 <body class="<?= $authPage ? 'auth-shell' : '' ?>">
 <?php if ($authPage): ?>

@@ -29,16 +29,16 @@ final class CashierController extends Controller
             $db->beginTransaction();
 
             $customerId = $this->resolveCustomer();
-            $serviceIds = array_values(array_filter(array_map('intval', $_POST['services'] ?? [])));
-            if (!$customerId || count($serviceIds) === 0) {
-                throw new \RuntimeException('Pelanggan dan minimal satu layanan wajib dipilih.');
+            $serviceId = (int) (post('service') ?? 0);
+            if (!$customerId || $serviceId === 0) {
+                throw new \RuntimeException('Pelanggan dan layanan wajib dipilih.');
             }
 
-            $serviceRows = $this->fetchByIds('services', $serviceIds);
-            $subtotal = 0.0;
-            foreach ($serviceRows as $service) {
-                $subtotal += (float) $service['price'];
+            $serviceRow = $this->fetchOne('services', $serviceId);
+            if (!$serviceRow) {
+                throw new \RuntimeException('Layanan tidak ditemukan.');
             }
+            $subtotal = (float) $serviceRow['price'];
 
             $total = $subtotal;
             $action = post('action', 'paid');
@@ -57,14 +57,12 @@ final class CashierController extends Controller
             $transactionId = (int) $db->lastInsertId();
 
             $detail = $db->prepare('INSERT INTO transaction_details (transaction_id, item_type, item_id, item_name, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?, ?)');
-            foreach ($serviceRows as $service) {
-                $detail->execute([$transactionId, 'service', $service['id'], $service['name'], 1, $service['price'], $service['price']]);
-            }
+            $detail->execute([$transactionId, 'service', $serviceRow['id'], $serviceRow['name'], 1, $serviceRow['price'], $serviceRow['price']]);
 
             $db->prepare('INSERT INTO payments (transaction_id, amount, method, payment_date, notes) VALUES (?, ?, ?, NOW(), ?)')->execute([$transactionId, $paid, post('payment_method'), 'Initial payment']);
             $queueNo = $this->nextQueueNo();
-            $db->prepare('INSERT INTO queues (queue_no, transaction_id, customer_id, employee_id, status, priority, created_at) VALUES (?, ?, ?, ?, "Waiting", ?, NOW())')
-                ->execute([$queueNo, $transactionId, $customerId, post('employee_id') ?: null, post('priority') ? 1 : 0]);
+            $db->prepare('INSERT INTO queues (queue_no, transaction_id, customer_id, employee_id, status, priority, created_at) VALUES (?, ?, ?, ?, "Waiting", 0, NOW())')
+                ->execute([$queueNo, $transactionId, $customerId, post('employee_id') ?: null]);
 
             $points = (int) floor($total / 10000);
             if ($points > 0) {
@@ -115,8 +113,8 @@ final class CashierController extends Controller
         if ($name === '' || $plate === '') {
             return 0;
         }
-        $stmt = $this->db()->prepare('INSERT INTO customers (name, phone, plate_number, motorcycle_brand, motorcycle_type, notes) VALUES (?, ?, ?, ?, ?, ?)');
-        $stmt->execute([$name, post('phone'), $plate, post('motorcycle_brand'), post('motorcycle_type'), 'Created from cashier']);
+        $stmt = $this->db()->prepare('INSERT INTO customers (name, phone, plate_number, motorcycle_type, notes) VALUES (?, ?, ?, ?, ?)');
+        $stmt->execute([$name, post('phone'), $plate, post('motorcycle_type'), 'Created from cashier']);
         return (int) $this->db()->lastInsertId();
     }
 

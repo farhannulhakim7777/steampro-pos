@@ -26,8 +26,13 @@ final class Database
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
         } catch (PDOException $exception) {
+            $config = require dirname(__DIR__, 2) . '/config/config.php';
+            if ($config['app']['debug']) {
+                http_response_code(500);
+                exit('Database connection failed: ' . $exception->getMessage());
+            }
             http_response_code(500);
-            exit('Database connection failed. Check config/config.php.');
+            exit('Database connection failed. Please contact administrator.');
         }
 
         return self::$connection;

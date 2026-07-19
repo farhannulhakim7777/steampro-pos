@@ -1,5 +1,5 @@
 <section class="receipt">
-    <div class="receipt-card">
+    <div class="receipt-card" id="printable-receipt">
         <h2><?= e($settings['business_name'] ?? 'SteamPro POS') ?></h2>
         <p><?= e($settings['business_address'] ?? 'Motorcycle Wash & Detailing') ?><br><?= e($settings['business_phone'] ?? '') ?></p>
         <hr>
@@ -16,6 +16,7 @@
         <div class="receipt-row grand"><span>Total</span><strong><?= money($transaction['total_amount']) ?></strong></div>
         <div class="receipt-row"><span>Dibayar</span><strong><?= money($transaction['paid_amount']) ?></strong></div>
         <div class="receipt-row"><span>Sisa</span><strong><?= money($transaction['remaining_amount']) ?></strong></div>
+        <div class="receipt-row"><span>Metode</span><strong><?= e($transaction['payment_method']) ?></strong></div>
         <p class="center"><?= e($settings['receipt_footer'] ?? 'Thank you. Ride clean, ride safe.') ?></p>
     </div>
     <div class="receipt-actions">
