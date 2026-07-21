@@ -31,3 +31,25 @@
     </div>
 </section>
 
+<style>
+@media print {
+    .receipt-actions {
+        display: none !important;
+    }
+    body {
+        background: white !important;
+    }
+    .receipt {
+        display: flex;
+        justify-content: center;
+        padding: 0;
+    }
+    .receipt-card {
+        box-shadow: none;
+        border: none;
+        width: 100%;
+        max-width: none;
+    }
+}
+</style>
+

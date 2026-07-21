@@ -3,8 +3,18 @@
     <article class="stat"><span>Transaksi</span><strong><?= e($stats['today_transactions']) ?></strong></article>
     <article class="stat amber"><span>Antrian Aktif</span><strong><?= e($stats['active_queue']) ?></strong></article>
     <article class="stat green"><span>Selesai</span><strong><?= e($stats['completed_services']) ?></strong></article>
-    <article class="stat"><span>Pendapatan Bulanan</span><strong><?= money($stats['monthly_revenue']) ?></strong></article>
-    <article class="stat dark"><span>Laba Bulanan</span><strong><?= money($stats['monthly_profit']) ?></strong></article>
+    <?php if (\App\Core\Auth::role() === 'owner'): ?>
+        <article class="stat"><span>Pendapatan Bulanan</span><strong><?= money($stats['monthly_revenue']) ?></strong></article>
+        <article class="stat dark"><span>Laba Bulanan</span><strong><?= money($stats['monthly_profit']) ?></strong></article>
+    <?php else: ?>
+        <?php
+        $last7DaysRevenue = 0;
+        foreach ($dailyRevenue as $row) {
+            $last7DaysRevenue += $row['revenue'];
+        }
+        ?>
+        <article class="stat"><span>Pendapatan 7 Hari</span><strong><?= money($last7DaysRevenue) ?></strong></article>
+    <?php endif; ?>
 </section>
 <section class="content-grid">
     <div class="panel">
