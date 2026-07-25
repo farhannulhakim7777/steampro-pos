@@ -13,7 +13,7 @@ final class CashierController extends Controller
     {
         Auth::requireRole(['owner', 'cashier']);
         $db = $this->db();
-        $customers = $db->query('SELECT id, name, phone, plate_number, motorcycle_brand, motorcycle_type FROM customers ORDER BY name LIMIT 200')->fetchAll();
+        $customers = $db->query('SELECT id, name, phone, plate_number, motorcycle_brand, motorcycle_type, motorcycle_size FROM customers ORDER BY name LIMIT 200')->fetchAll();
         $services = $db->query("SELECT s.*, sc.name AS category_name FROM services s JOIN service_categories sc ON sc.id=s.category_id WHERE s.status='active' ORDER BY sc.name, s.name")->fetchAll();
         $employees = $db->query("SELECT * FROM employees WHERE status='active' ORDER BY name")->fetchAll();
         view('cashier/index', compact('customers', 'services', 'employees') + ['title' => 'Kasir']);
@@ -42,18 +42,28 @@ final class CashierController extends Controller
 
             $total = $subtotal;
             $action = post('action', 'paid');
+            $paymentAmount = (float) post('payment_amount', $total);
             
             if ($action === 'paid') {
-                $paid = $total;
+                $paid = $total; // Revenue is always the total, not the cash received
                 $paymentStatus = 'paid';
             } else {
                 $paid = 0;
                 $paymentStatus = 'unpaid';
             }
+            
+            // Cash received from customer (for change calculation)
+            $cashReceived = $paymentAmount > 0 ? $paymentAmount : $total;
             $transactionNo = $this->nextTransactionNo();
 
+            // Store cash received in notes for receipt display
+            $notes = trim((string) post('notes'));
+            if ($cashReceived > $total) {
+                $notes .= ($notes ? ' | ' : '') . 'CashReceived:' . $cashReceived;
+            }
+
             $stmt = $db->prepare('INSERT INTO transactions (transaction_no, customer_id, cashier_id, transaction_date, subtotal, discount, total_amount, paid_amount, remaining_amount, payment_method, payment_status, notes) VALUES (?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$transactionNo, $customerId, Auth::id(), $subtotal, 0, $total, $paid, $total - $paid, post('payment_method'), $paymentStatus, trim((string) post('notes'))]);
+            $stmt->execute([$transactionNo, $customerId, Auth::id(), $subtotal, 0, $total, $paid, $total - $paid, post('payment_method'), $paymentStatus, $notes]);
             $transactionId = (int) $db->lastInsertId();
 
             $detail = $db->prepare('INSERT INTO transaction_details (transaction_id, item_type, item_id, item_name, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?, ?, ?)');
@@ -113,8 +123,22 @@ final class CashierController extends Controller
         if ($name === '' || $plate === '') {
             return 0;
         }
-        $stmt = $this->db()->prepare('INSERT INTO customers (name, phone, plate_number, motorcycle_type, notes) VALUES (?, ?, ?, ?, ?)');
-        $stmt->execute([$name, post('phone'), $plate, post('motorcycle_type'), 'Created from cashier']);
+        
+        // Check if customer with same plate number already exists
+        $stmt = $this->db()->prepare('SELECT id FROM customers WHERE plate_number = ? LIMIT 1');
+        $stmt->execute([$plate]);
+        $existingCustomer = $stmt->fetch();
+        
+        if ($existingCustomer) {
+            // Update existing customer info if needed
+            $this->db()->prepare('UPDATE customers SET name=?, phone=?, motorcycle_type=?, motorcycle_size=? WHERE id=?')
+                ->execute([$name, post('phone'), post('motorcycle_type'), post('motorcycle_size'), $existingCustomer['id']]);
+            return (int) $existingCustomer['id'];
+        }
+        
+        // Create new customer
+        $stmt = $this->db()->prepare('INSERT INTO customers (name, phone, plate_number, motorcycle_type, motorcycle_size, notes) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt->execute([$name, post('phone'), $plate, post('motorcycle_type'), post('motorcycle_size'), 'Created from cashier']);
         return (int) $this->db()->lastInsertId();
     }
 

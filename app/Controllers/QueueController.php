@@ -35,7 +35,13 @@ final class QueueController extends Controller
             exit('Invalid status');
         }
         $id = (int) post('id');
-        $this->db()->prepare('UPDATE queues SET status=?, employee_id=COALESCE(?, employee_id), updated_at=NOW() WHERE id=?')->execute([$status, post('employee_id') ?: null, $id]);
+        $employeeId = post('employee_id');
+        // Only update employee_id if it's provided in the form
+        if ($employeeId !== null && $employeeId !== '') {
+            $this->db()->prepare('UPDATE queues SET status=?, employee_id=?, updated_at=NOW() WHERE id=?')->execute([$status, $employeeId, $id]);
+        } else {
+            $this->db()->prepare('UPDATE queues SET status=?, updated_at=NOW() WHERE id=?')->execute([$status, $id]);
+        }
         $this->log('update_queue_status', 'queues', $id);
         redirect('/queue');
     }

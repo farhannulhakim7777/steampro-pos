@@ -17,7 +17,7 @@
                 <datalist id="customer-list">
                     <option value="">Pelanggan Baru</option>
                     <?php foreach ($customers as $c): ?>
-                    <option value="<?= e($c['plate_number'] . ' - ' . $c['name']) ?>" data-id="<?= e($c['id']) ?>" data-name="<?= e($c['name']) ?>" data-phone="<?= e($c['phone']) ?>" data-plate="<?= e($c['plate_number']) ?>" data-brand="<?= e($c['motorcycle_brand']) ?>" data-type="<?= e($c['motorcycle_type']) ?>"></option>
+                    <option value="<?= e($c['plate_number'] . ' - ' . $c['name']) ?>" data-id="<?= e($c['id']) ?>" data-name="<?= e($c['name']) ?>" data-phone="<?= e($c['phone']) ?>" data-plate="<?= e($c['plate_number']) ?>" data-type="<?= e($c['motorcycle_type']) ?>" data-size="<?= e($c['motorcycle_size'] ?? '') ?>"></option>
                     <?php endforeach; ?>
                 </datalist>
             </div>
@@ -38,6 +38,14 @@
                 <div class="form-group">
                     <label>Tipe Motor</label>
                     <input type="text" name="motorcycle_type" placeholder="Beat, NMAX, dll">
+                </div>
+                <div class="form-group">
+                    <label>Jenis Motor</label>
+                    <select name="motorcycle_size" required>
+                        <option value="">Pilih jenis motor</option>
+                        <option value="kecil">Motor Kecil</option>
+                        <option value="besar">Motor Besar</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>Petugas Cuci</label>
@@ -112,6 +120,34 @@
             <textarea name="notes" placeholder="Tambahkan catatan transaksi..." rows="3"></textarea>
         </div>
         
+        <div class="form-group">
+            <label>Uang Diterima</label>
+            <input type="number" name="payment_amount" id="payment-amount" placeholder="0" min="0" oninput="calculateChange()">
+        </div>
+        
+        <div class="quick-amount-buttons">
+            <button type="button" class="quick-btn" onclick="setPaymentAmount(15000)">15K</button>
+            <button type="button" class="quick-btn" onclick="setPaymentAmount(20000)">20K</button>
+        </div>
+        
+        <!-- Numeric Keypad -->
+        <div class="numeric-keypad">
+            <button type="button" class="numpad-btn" onclick="appendNumber('7')">7</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('8')">8</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('9')">9</button>
+            <button type="button" class="numpad-btn action-btn" onclick="clearPayment()">C</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('4')">4</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('5')">5</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('6')">6</button>
+            <button type="button" class="numpad-btn action-btn" onclick="backspace()">⌫</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('1')">1</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('2')">2</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('3')">3</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('0')">0</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('00')">00</button>
+            <button type="button" class="numpad-btn" onclick="appendNumber('000')">000</button>
+        </div>
+        
         <div class="payment-summary">
             <div class="summary-row">
                 <span>Subtotal</span>
@@ -120,6 +156,10 @@
             <div class="summary-row total">
                 <span>Total</span>
                 <strong data-total>Rp 0</strong>
+            </div>
+            <div class="summary-row change">
+                <span>Kembalian</span>
+                <strong id="change-amount">Rp 0</strong>
             </div>
         </div>
         
@@ -174,13 +214,94 @@
     border: 1px solid var(--line);
     background: var(--bg);
     cursor: pointer;
+}
+
+.quick-amount-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.quick-btn {
+    padding: 10px;
+    border: 2px solid var(--brand);
+    background: var(--brand);
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
     font-weight: 600;
-    font-size: 13px;
     transition: all 0.2s;
+}
+
+.quick-btn:hover {
+    background: var(--brand2);
+    border-color: var(--brand2);
+}
+
+.quick-btn:active {
+    transform: scale(0.95);
 }
 
 .btn-clear:hover {
     background: var(--line);
+}
+
+/* Numeric Keypad */
+.numeric-keypad {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.numpad-btn {
+    padding: 16px;
+    font-size: 20px;
+    font-weight: 600;
+    border: 2px solid var(--line);
+    background: var(--panel);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: var(--ink);
+    min-height: 55px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.numpad-btn:hover {
+    background: var(--bg);
+    border-color: var(--muted);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.numpad-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.numpad-btn.action-btn {
+    background: linear-gradient(135deg, var(--brand), var(--brand2));
+    color: #fff;
+    border-color: var(--brand);
+    font-size: 18px;
+}
+
+.numpad-btn.action-btn:hover {
+    background: linear-gradient(135deg, var(--brand2), var(--brand));
+    border-color: var(--brand2);
+}
+
+@media (max-width: 768px) {
+    .numeric-keypad {
+        gap: 6px;
+    }
+    .numpad-btn {
+        padding: 12px;
+        font-size: 18px;
+        min-height: 50px;
+    }
 }
 
 /* Customer Section */
@@ -533,6 +654,7 @@ function clearCustomer() {
     document.querySelector('[name="plate_number"]').value = '';
     document.querySelector('[name="phone"]').value = '';
     document.querySelector('[name="motorcycle_type"]').value = '';
+    document.querySelector('[name="motorcycle_size"]').value = '';
 }
 
 customerSearch.addEventListener('input', () => {
@@ -545,12 +667,14 @@ customerSearch.addEventListener('input', () => {
         document.querySelector('[name="plate_number"]').value = selectedOption.dataset.plate || '';
         document.querySelector('[name="phone"]').value = selectedOption.dataset.phone || '';
         document.querySelector('[name="motorcycle_type"]').value = selectedOption.dataset.type || '';
+        document.querySelector('[name="motorcycle_size"]').value = selectedOption.dataset.size || '';
     } else {
         customerId.value = '';
         document.querySelector('[name="customer_name"]').value = '';
         document.querySelector('[name="plate_number"]').value = '';
         document.querySelector('[name="phone"]').value = '';
         document.querySelector('[name="motorcycle_type"]').value = '';
+        document.querySelector('[name="motorcycle_size"]').value = '';
     }
 });
 
@@ -569,6 +693,47 @@ function calculateTotal() {
         document.querySelector('[data-total]').textContent = 'Rp 0';
         document.querySelector('.selected-count').textContent = '0 layanan dipilih';
     }
+    
+    // Recalculate change when total changes
+    calculateChange();
+}
+
+// Calculate change based on payment amount
+function calculateChange() {
+    const totalText = document.querySelector('[data-total]').textContent.replace(/[^0-9]/g, '');
+    const total = parseFloat(totalText) || 0;
+    const paymentAmount = parseFloat(document.getElementById('payment-amount').value) || 0;
+    const change = paymentAmount - total;
+    
+    const formattedChange = 'Rp ' + Math.max(0, change).toLocaleString('id-ID');
+    document.getElementById('change-amount').textContent = formattedChange;
+}
+
+// Set payment amount to specific value
+function setPaymentAmount(amount) {
+    document.getElementById('payment-amount').value = amount;
+    calculateChange();
+}
+
+// Append number to payment amount
+function appendNumber(num) {
+    const input = document.getElementById('payment-amount');
+    const currentValue = input.value || '0';
+    input.value = currentValue === '0' ? num : currentValue + num;
+    calculateChange();
+}
+
+// Clear payment amount
+function clearPayment() {
+    document.getElementById('payment-amount').value = '';
+    calculateChange();
+}
+
+// Backspace - remove last digit
+function backspace() {
+    const input = document.getElementById('payment-amount');
+    input.value = input.value.slice(0, -1);
+    calculateChange();
 }
 
 // Add event listeners to all service radio buttons

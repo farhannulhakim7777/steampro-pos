@@ -14,8 +14,16 @@
         <div class="receipt-row"><span>Subtotal</span><strong><?= money($transaction['subtotal']) ?></strong></div>
         <div class="receipt-row"><span>Diskon</span><strong><?= money($transaction['discount']) ?></strong></div>
         <div class="receipt-row grand"><span>Total</span><strong><?= money($transaction['total_amount']) ?></strong></div>
-        <div class="receipt-row"><span>Dibayar</span><strong><?= money($transaction['paid_amount']) ?></strong></div>
-        <div class="receipt-row"><span>Sisa</span><strong><?= money($transaction['remaining_amount']) ?></strong></div>
+        <?php
+        $cashReceived = $transaction['total_amount'];
+        $changeAmount = 0;
+        if (preg_match('/CashReceived:(\d+)/', $transaction['notes'], $matches)) {
+            $cashReceived = (float) $matches[1];
+            $changeAmount = $cashReceived - $transaction['total_amount'];
+        }
+        ?>
+        <div class="receipt-row"><span>Uang Diterima</span><strong><?= money($cashReceived) ?></strong></div>
+        <div class="receipt-row"><span>Kembalian</span><strong><?= money($changeAmount) ?></strong></div>
         <div class="receipt-row"><span>Metode</span><strong><?= e($transaction['payment_method']) ?></strong></div>
         <p class="center"><?= e($settings['receipt_footer'] ?? 'Thank you. Ride clean, ride safe.') ?></p>
     </div>
